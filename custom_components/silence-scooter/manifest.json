@@ -1,0 +1,11 @@
+{
+    "domain": "silencescooter",
+    "name": "Silence Scooter",
+    "version": "0.0.1",
+    "documentation": "https://github.com/lorenzo-deluca/homeassistant-silence/",
+    "issue_tracker": "https://github.com/lorenzo-deluca/homeassistant-silence/issues",
+    "dependencies": [],
+    "codeowners": ["@lorenzo-deluca"],
+    "requirements": [],
+	"iot_class": "cloud_polling"
+}
