@@ -7,18 +7,39 @@ This is a Home Assistant custom component (sensor) that integrate data from you 
 
 [![buy me a coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/lorenzodeluca)
 
-The sensor will check every hour if a new reading can be retrieved but Greenchoice practically only gives us one reading a day over this API. The reading is also delayed by 1 or 2 days (this seems to vary). The sensor will give you the date of the reading as an attribute.
+# Disclaimer
+This plugin was developed by analyzing traffic from official Silence app, it was not sponsored by Silence.eco
+If someone from Silence would like to share it please contact me at [me@lorenzodeluca.dev](mailto:me@lorenzodeluca.dev?subject=[GitHub]Ha-Silence)
 
-### Install:
-1. Search for 'silence-scooter' in [HACS](https://hacs.xyz/). 
-    *OR*
-   Place the 'silence-scooter' folder in your 'custom_compontents' directory if it exists or create a new one under your config directory.
-2. Add the component to your configuration.yaml, an example of a proper config entry:
+## Home Assistant
+After installing and configuring the plugin you will be able to view on home assistant all the data of your scooter silence, 
+keep statistics and use them for your automations.
+
+![HA Entities](https://raw.githubusercontent.com/lorenzo-deluca/homeassistant-silence/master/images/ha-entities.png)
+![HA Battery Soc](https://raw.githubusercontent.com/lorenzo-deluca/homeassistant-silence/master/images/ha-batterysoc.png)
+
+### Installation
+You can install this plugin like any other hacs integration on home assistant.
+
+#### HACS
+- Add repository "https://github.com/lorenzo-deluca/homeassistant-silence" to custom repositories and select "Integration" category.
+- Click on "Install" in the plugin card.
+
+#### Manual
+Copy or link [`silence-scooter`](./custom_components/silence-scooter) subfolder to `config/custom_components`.
+
+### Configuration
+Configure you Scooter with Silence APP, edit `configuration.yaml` file adding this sensor with your app credentials.
+
 
 ```YAML
 sensor:
-  - platform: silence-scooter
+  - platform: silencescooter
     name: MySilenceScooter
     username: !secret silenceuser
     password: !secret silencepassword
 ```
+
+## Work in Progress
+The plugin is still under development, the `device_tracker` entity with the scooter positioning will be implemented as well.
+If you have new implementations feel free to make pull requests :) 
