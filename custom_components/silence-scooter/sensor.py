@@ -25,7 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 CONF_USERNAME = 'username'
 CONF_PASSWORD = 'password'
 
-DEFAULT_NAME = 'Energieverbruik'
+DEFAULT_NAME = 'SilenceScooter'
 DEFAULT_DATE_FORMAT = "%y-%m-%dT%H:%M:%S"
 
 ATTR_NAME = 'name'
@@ -42,28 +42,40 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_PASSWORD, default=CONF_PASSWORD): cv.string,
 })
 
-
 def setup_platform(hass, config, add_entities, discovery_info=None):
 
     name = config.get(CONF_NAME)
     username = config.get(CONF_USERNAME)
     password = config.get(CONF_PASSWORD)
 
-    greenchoice_api = SilenceApiData(username,password)
+    silence_api = SilenceApiData(username,password)
+    silence_api.update()
 
-    greenchoice_api.update()
-
-    if greenchoice_api is None:
+    if silence_api is None:
         raise PlatformNotReady
 
     sensors = []
-    sensors.append(Silence(greenchoice_api, name, username, password, "batterySoc"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "frameNo"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "color"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "name"))
+
+    sensors.append(SilenceScooter(silence_api, name, username, password, "alarmActivated"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "batteryOut"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "charging"))
+
+    sensors.append(SilenceScooter(silence_api, name, username, password, "batterySoc"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "odometer"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "range"))
+
+    sensors.append(SilenceScooter(silence_api, name, username, password, "batteryTemperature"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "motorTemperature"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "inverterTemperature"))
+
     add_entities(sensors, True)
 
-
-class Silence(Entity):
-    def __init__(self, greenchoice_api, name, username, password, measurement_type):
-        self._json_data = greenchoice_api
+class SilenceScooter(Entity):
+    def __init__(self, silence_api, name, username, password, measurement_type):
+        self._json_data = silence_api
         self._name = name
         self._username = username
         self._password = password
@@ -131,11 +143,17 @@ class Silence(Entity):
             self._state = data[self._measurement_type]
             self._measurement_date = data["lastReportTime"]
 
-        if self._measurement_type == "batterySoc":
-            self._icon = 'mdi:fire'
-            self._name = 'batterySoc'
-            self._unit_of_measurement = "%"
+        self._name = 'silence.' + self._measurement_type
 
+        if self._measurement_type == "batterySoc":
+            self._icon = 'mdi:battery-charging' if data["charging"] == True else 'mdi:battery' 
+            self._unit_of_measurement = "%"
+        elif self._measurement_type == "batteryTemperature":
+            self._icon = 'mdi:temperature-celsius'
+            self._unit_of_measurement = "°C"
+        elif self._measurement_type == "odometer":
+            self._icon = 'mdi:fire'
+            self._unit_of_measurement = "km"
 
 class SilenceApiData:
     def __init__(self, username, password):
@@ -206,9 +224,26 @@ class SilenceApiData:
                     response = requests.request("GET", url, headers=headers)
                     json_result = response.json()
 
-                    _LOGGER._LOGGER("getsilence json_response=%s", json_result)
-                    self.result["lastReportTime"] = json_result[0]["lastReportTime"]
+                    _LOGGER.debug("getsilence json_response=%s", json_result)
+
+                    self.result["frameNo"] = json_result[0]["frameNo"]
+                    self.result["color"] = json_result[0]["color"]
+                    self.result["name"] = json_result[0]["name"]
+
+                    self.result["alarmActivated"] = json_result[0]["alarmActivated"]
+                    self.result["batteryOut"] = json_result[0]["batteryOut"]
+                    self.result["charging"] = json_result[0]["charging"]
+
                     self.result["batterySoc"] = json_result[0]["batterySoc"]
+                    self.result["odometer"] = json_result[0]["odometer"]
+                    self.result["range"] = json_result[0]["range"]
+                    
+                    self.result["batteryTemperature"] = json_result[0]["batteryTemperature"]
+                    self.result["motorTemperature"] = json_result[0]["motorTemperature"]
+                    self.result["inverterTemperature"] = json_result[0]["inverterTemperature"]
+
+                    self.result["lastReportTime"] = json_result[0]["lastReportTime"]
+
                 except http.client.HTTPException:
                     _LOGGER.error("Could not retrieve current numbers.")
                     self.result = "Could not retrieve current numbers."
