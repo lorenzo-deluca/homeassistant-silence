@@ -2,7 +2,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 ![Version](https://img.shields.io/github/v/release/lorenzo-deluca/homeassistant-silence)
 ![Downloads](https://img.shields.io/github/downloads/lorenzo-deluca/homeassistant-silence/total)
-[![buy me a coffee][https://img.shields.io/badge/support-buymeacoffee-222222.svg?style=flat-square]][https://www.buymeacoffee.com/lorenzodeluca]
+[![buy me a coffee](https://img.shields.io/badge/support-buymeacoffee-222222.svg?style=flat-square)](https://www.buymeacoffee.com/lorenzodeluca)
 
 > Silence.eco Scooter data for [Home Assistant][https://www.home-assistant.io]
 
