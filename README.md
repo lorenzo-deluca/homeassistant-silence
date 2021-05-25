@@ -32,7 +32,7 @@ You can install this plugin like any other hacs integration on home assistant.
 - Click on "Install" in the plugin card.
 
 ### Manual
-Copy or link [`silence-scooter`](./custom_components/silence-scooter) subfolder to `config/custom_components`.
+Copy or link [`silencescooter`](./custom_components/silencescooter) subfolder to `config/custom_components`.
 
 ## Configuration
 Configure you Scooter with Silence APP, edit `configuration.yaml` file adding this sensor with your app credentials.
