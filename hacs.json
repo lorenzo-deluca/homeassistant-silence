@@ -1,6 +1,4 @@
 {
     "name": "Silence Scooter",
-    "iot_class": "Cloud Polling",
-    "hide_default_branch": true,
     "render_readme": true
 }
