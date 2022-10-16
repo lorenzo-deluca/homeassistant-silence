@@ -18,12 +18,13 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '0.0.1'
+__version__ = '0.8'
 
 _LOGGER = logging.getLogger(__name__)
 
 CONF_USERNAME = 'username'
 CONF_PASSWORD = 'password'
+CONF_API_KEY = 'apikey' 
 
 DEFAULT_NAME = 'SilenceScooter'
 DEFAULT_DATE_FORMAT = "%y-%m-%dT%H:%M:%S"
@@ -34,30 +35,38 @@ ATTR_ICON = 'icon'
 ATTR_MEASUREMENT_DATE = 'date'
 ATTR_UNIT_OF_MEASUREMENT = 'unit_of_measurement'
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=3600)
+
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
     vol.Optional(CONF_USERNAME, default=CONF_USERNAME): cv.string,
     vol.Optional(CONF_PASSWORD, default=CONF_PASSWORD): cv.string,
+    vol.Optional(CONF_API_KEY, default='AIzaSyAVnxe4u3oKETFWGiWcSb-43IsBunDDSVI'): cv.string,
 })
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
 
-    name = config.get(CONF_NAME)
-    username = config.get(CONF_USERNAME)
-    password = config.get(CONF_PASSWORD)
+    try:
+        name = config.get(CONF_NAME)
+        username = config.get(CONF_USERNAME)
+        password = config.get(CONF_PASSWORD)
+        apikey = config.get(CONF_API_KEY)
 
-    silence_api = SilenceApiData(username,password)
-    silence_api.update()
+        silence_api = SilenceApiData(username,password,apikey)
+        silence_api.update()
 
-    if silence_api is None:
-        raise PlatformNotReady
+        if silence_api is None:
+            raise PlatformNotReady
+    except:
+        raise PlatformNotReady("Error while setup platform")
 
     sensors = []
     sensors.append(SilenceScooter(silence_api, name, username, password, "frameNo"))
     sensors.append(SilenceScooter(silence_api, name, username, password, "color"))
     sensors.append(SilenceScooter(silence_api, name, username, password, "name"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "model"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "status"))
 
     sensors.append(SilenceScooter(silence_api, name, username, password, "alarmActivated"))
     sensors.append(SilenceScooter(silence_api, name, username, password, "batteryOut"))
@@ -127,7 +136,7 @@ class SilenceScooter(Entity):
         }
 
     def update(self):
-        """Get the latest data from the Greenchoice API."""
+        """Get the latest data from the Silence API."""
         self._json_data.update()
 
         data = self._json_data.result
@@ -156,23 +165,9 @@ class SilenceScooter(Entity):
             self._unit_of_measurement = "km"
 
 class SilenceApiData:
-    def __init__(self, username, password):
+    def __init__(self, username, password, apikey):
         self.result = {}
         self.token = ""
-        self._tokenheaders = {
-            'host': 'www.googleapis.com',
-            'content-type': 'application/json',
-            'accept': '*/*',
-            'x-firebase-locale': 'it-IT',
-            'x-ios-bundle-identifier': 'co.lateralview.Silence',
-            'connection': 'keep-alive',
-            'x-client-version': 'iOS/FirebaseSDK/6.4.3/FirebaseCore-iOS',
-            'user-agent': 'FirebaseAuth.iOS/6.4.3 co.lateralview.Silence/1.1.008 iPhone/14.4.2 hw/iPhone9_3',
-            'accept-language': 'it',
-            'content-length': '82',
-            'accept-encoding': 'gzip, deflate, br'
-        }
-
         self._tokenquery = json.dumps({
                 "email": username,
                 "returnSecureToken": True,
@@ -184,19 +179,16 @@ class SilenceApiData:
         self.result = {}
 
         try:
-            url = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyCQYZCPvfl-y5QmzRrbUrCwR0RVNbyKqwI"
+            url = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyAVnxe4u3oKETFWGiWcSb-43IsBunDDSVI"
 
             headers = {
                 'host': 'www.googleapis.com',
                 'content-type': 'application/json',
                 'accept': '*/*',
-                'x-firebase-locale': 'it-IT',
-                'x-ios-bundle-identifier': 'co.lateralview.Silence',
+                'x-ios-bundle-identifier': 'eco.silence.my',
                 'connection': 'keep-alive',
-                'x-client-version': 'iOS/FirebaseSDK/6.4.3/FirebaseCore-iOS',
-                'user-agent': 'FirebaseAuth.iOS/6.4.3 co.lateralview.Silence/1.1.008 iPhone/14.4.2 hw/iPhone9_3',
-                'accept-language': 'it',
-                'content-length': '82',
+                'x-client-version': 'iOS/FirebaseSDK/8.8.0/FirebaseCore-iOS',
+                'user-agent': 'FirebaseAuth.iOS/8.8.0 eco.silence.my/1.2.1 iPhone/15.6.1 hw/iPhone9_3',
                 'accept-encoding': 'gzip, deflate, br'
             }
 
@@ -209,14 +201,13 @@ class SilenceApiData:
                 self.token = 'Bearer ' + format(json_result['idToken'])
 
                 try:
-                    url = "https://api.connectivity.silence.eco/api/v1/me/scooters?details=true&dynamic=true"
+                    url = "https://api.connectivity.silence.eco/api/v1/me/scooters?details=true&dynamic=true&pollIfNecessary=true"
                     payload={}
                     headers = {
                         'host': 'api.connectivity.silence.eco:443',
                         'connection': 'keep-alive',
                         'accept': '*/*',
                         'user-agent': 'Silence/220 CFNetwork/1220.1 Darwin/20.3.0',
-                        'accept-language': 'it-it',
                         'authorization': self.token,
                         'accept-encoding': 'gzip, deflate, br'
                     }
@@ -229,6 +220,8 @@ class SilenceApiData:
                     self.result["frameNo"] = json_result[0]["frameNo"]
                     self.result["color"] = json_result[0]["color"]
                     self.result["name"] = json_result[0]["name"]
+                    self.result["model"] = json_result[0]["model"]
+                    self.result["status"] = json_result[0]["status"]
 
                     self.result["alarmActivated"] = json_result[0]["alarmActivated"]
                     self.result["batteryOut"] = json_result[0]["batteryOut"]
@@ -246,15 +239,16 @@ class SilenceApiData:
 
                 except http.client.HTTPException:
                     _LOGGER.error("Could not retrieve current numbers.")
+
                     self.result = "Could not retrieve current numbers."
             else:
                 if "error_description" in json_result:
                     error_description = json_result["error_description"]
                 else:
                     error_description = "unknown"
-                self.result = f"Could not retrieve token ({error_description})."
+                self.result = f"Error on token request ({error_description})."
                 _LOGGER.error(self.result)
 
-        except http.client.HTTPException:
+        except:
             _LOGGER.error("Could not retrieve token.")
             self.result = "Could not retrieve token."
