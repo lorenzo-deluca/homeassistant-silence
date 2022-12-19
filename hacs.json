@@ -1,4 +1,4 @@
 {
-    "name": "Silence Scooter",
-    "render_readme": true
+	"name": "silencescooter",
+	"hacs": "1.6.0"
 }
