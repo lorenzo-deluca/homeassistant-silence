@@ -1,5 +1,4 @@
 {
 	"name": "silencescooter",
-	"hacs": "1.6.0",
-	"iot_class": "Cloud Polling"
+	"hacs": "1.6.0"
 }
