@@ -36,7 +36,7 @@ ATTR_MEASUREMENT_DATE = 'date'
 ATTR_UNIT_OF_MEASUREMENT = 'unit_of_measurement'
 
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=120)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
@@ -57,7 +57,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         silence_api.update()
 
         if silence_api is None:
-            raise PlatformNotReady
+            raise PlatformNotReady("silence_api None")
     except:
         raise PlatformNotReady("Error while setup platform")
 
@@ -75,10 +75,13 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     sensors.append(SilenceScooter(silence_api, name, username, password, "batterySoc"))
     sensors.append(SilenceScooter(silence_api, name, username, password, "odometer"))
     sensors.append(SilenceScooter(silence_api, name, username, password, "range"))
+    sensors.append(SilenceScooter(silence_api, name, username, password, "velocity"))
 
     sensors.append(SilenceScooter(silence_api, name, username, password, "batteryTemperature"))
     sensors.append(SilenceScooter(silence_api, name, username, password, "motorTemperature"))
     sensors.append(SilenceScooter(silence_api, name, username, password, "inverterTemperature"))
+
+    sensors.append(SilenceScooter(silence_api, name, username, password, "lastReportTime"))
 
     add_entities(sensors, True)
 
@@ -154,15 +157,18 @@ class SilenceScooter(Entity):
 
         self._name = 'silence.' + self._measurement_type
 
-        if self._measurement_type == "batterySoc":
-            self._icon = 'mdi:battery-charging' if data["charging"] == True else 'mdi:battery' 
+        if(self._measurement_type == "batterySoc"):
+            self._icon = 'mdi:battery-charging' if data["charging"] == True else 'mdi:battery'
             self._unit_of_measurement = "%"
-        elif self._measurement_type == "batteryTemperature":
+        elif(self._measurement_type == "batteryTemperature"):
             self._icon = 'mdi:temperature-celsius'
             self._unit_of_measurement = "°C"
-        elif self._measurement_type == "odometer":
+        elif(self._measurement_type == "odometer" or self._measurement_type == "range"):
             self._icon = 'mdi:fire'
             self._unit_of_measurement = "km"
+        elif(self._measurement_type == "velocity"):
+            self._icon = 'mdi:car-speed-limiter'
+            self._unit_of_measurement = "km/h"
 
 class SilenceApiData:
     def __init__(self, username, password, apikey):
@@ -174,10 +180,8 @@ class SilenceApiData:
                 "password": password
             })
 
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    def update(self):
-        self.result = {}
-
+    def get_token(self):
+        
         try:
             url = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyAVnxe4u3oKETFWGiWcSb-43IsBunDDSVI"
 
@@ -195,60 +199,110 @@ class SilenceApiData:
             response = requests.request("POST", url, headers=headers, data=self._tokenquery)
             json_result = response.json()
 
-            _LOGGER.debug("token json_response=%s", json_result)
+            _LOGGER.debug("get_token json_response=%s", json_result)
 
             if "idToken" in json_result and "error" not in json_result:
-                self.token = 'Bearer ' + format(json_result['idToken'])
-
-                try:
-                    url = "https://api.connectivity.silence.eco/api/v1/me/scooters?details=true&dynamic=true&pollIfNecessary=true"
-                    payload={}
-                    headers = {
-                        'host': 'api.connectivity.silence.eco:443',
-                        'connection': 'keep-alive',
-                        'accept': '*/*',
-                        'user-agent': 'Silence/220 CFNetwork/1220.1 Darwin/20.3.0',
-                        'authorization': self.token,
-                        'accept-encoding': 'gzip, deflate, br'
-                    }
-
-                    response = requests.request("GET", url, headers=headers)
-                    json_result = response.json()
-
-                    _LOGGER.debug("getsilence json_response=%s", json_result)
-
-                    self.result["frameNo"] = json_result[0]["frameNo"]
-                    self.result["color"] = json_result[0]["color"]
-                    self.result["name"] = json_result[0]["name"]
-                    self.result["model"] = json_result[0]["model"]
-                    self.result["status"] = json_result[0]["status"]
-
-                    self.result["alarmActivated"] = json_result[0]["alarmActivated"]
-                    self.result["batteryOut"] = json_result[0]["batteryOut"]
-                    self.result["charging"] = json_result[0]["charging"]
-
-                    self.result["batterySoc"] = json_result[0]["batterySoc"]
-                    self.result["odometer"] = json_result[0]["odometer"]
-                    self.result["range"] = json_result[0]["range"]
-                    
-                    self.result["batteryTemperature"] = json_result[0]["batteryTemperature"]
-                    self.result["motorTemperature"] = json_result[0]["motorTemperature"]
-                    self.result["inverterTemperature"] = json_result[0]["inverterTemperature"]
-
-                    self.result["lastReportTime"] = json_result[0]["lastReportTime"]
-
-                except http.client.HTTPException:
-                    _LOGGER.error("Could not retrieve current numbers.")
-
-                    self.result = "Could not retrieve current numbers."
+                #self.token = 'Bearer ' + format(json_result['idToken'])
+                return format(json_result['idToken'])
             else:
                 if "error_description" in json_result:
                     error_description = json_result["error_description"]
                 else:
                     error_description = "unknown"
-                self.result = f"Error on token request ({error_description})."
+
                 _LOGGER.error(self.result)
+                _LOGGER.error("get_token - Could not find token.")
+                self.result = f"Error on token request ({error_description})."
+                return ""
 
         except:
-            _LOGGER.error("Could not retrieve token.")
+            _LOGGER.error("get_token - Could not retrieve token.")
             self.result = "Could not retrieve token."
+            return ""
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    def update(self):
+
+        if (len(self.token) == 0):
+            
+            try:
+                self.result = {}
+
+                url = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyAVnxe4u3oKETFWGiWcSb-43IsBunDDSVI"
+                headers = {
+                    'host': 'www.googleapis.com',
+                    'content-type': 'application/json',
+                    'accept': '*/*',
+                    'x-ios-bundle-identifier': 'eco.silence.my',
+                    'connection': 'keep-alive',
+                    'x-client-version': 'iOS/FirebaseSDK/8.8.0/FirebaseCore-iOS',
+                    'user-agent': 'FirebaseAuth.iOS/8.8.0 eco.silence.my/1.2.1 iPhone/15.6.1 hw/iPhone9_3',
+                    'accept-encoding': 'gzip, deflate, br'
+                }
+
+                response = requests.request("POST", url, headers=headers, data=self._tokenquery)
+                json_result = response.json()
+
+                _LOGGER.debug("get_token json_response=%s", json_result)
+
+                if "idToken" in json_result and "error" not in json_result:
+                    self.token = 'Bearer ' + format(json_result['idToken'])
+                else:
+                    if "error_description" in json_result:
+                        error_description = json_result["error_description"]
+                    else:
+                        error_description = "unknown"
+
+                    _LOGGER.error(self.result)
+                    _LOGGER.error("get_token - Could not find token.")
+                    self.result = f"Error on token request ({error_description})."
+            except:
+                _LOGGER.error("get_token - Could not retrieve token.")
+                self.result = "Could not retrieve token."
+
+        self.result = {}
+
+        try:
+            url = "https://api.connectivity.silence.eco/api/v1/me/scooters?details=true&dynamic=true&pollIfNecessary=true"
+            payload={}
+            headers = {
+                'host': 'api.connectivity.silence.eco:443',
+                'connection': 'keep-alive',
+                'accept': '*/*',
+                'user-agent': 'Silence/220 CFNetwork/1220.1 Darwin/20.3.0',
+                'authorization': self.token,
+                'accept-encoding': 'gzip, deflate, br'
+            }
+
+            response = requests.request("GET", url, headers=headers)
+            json_result = response.json()
+
+            _LOGGER.debug("getsilence json_response=%s", json_result)
+
+            self.result["frameNo"] = json_result[0]["frameNo"]
+            self.result["color"] = json_result[0]["color"]
+            self.result["name"] = json_result[0]["name"]
+            self.result["model"] = json_result[0]["model"]
+            self.result["status"] = json_result[0]["status"]
+
+            # to migrate binary_sensor
+            self.result["alarmActivated"] = json_result[0]["alarmActivated"]
+            self.result["batteryOut"] = json_result[0]["batteryOut"]
+            self.result["charging"] = json_result[0]["charging"]
+
+            self.result["batterySoc"] = json_result[0]["batterySoc"]
+            self.result["odometer"] = json_result[0]["odometer"]
+            self.result["range"] = json_result[0]["range"]
+            self.result["velocity"] = json_result[0]["velocity"]
+            
+            self.result["batteryTemperature"] = json_result[0]["batteryTemperature"]
+            self.result["motorTemperature"] = json_result[0]["motorTemperature"]
+            self.result["inverterTemperature"] = json_result[0]["inverterTemperature"]
+
+            self.result["lastReportTime"] = json_result[0]["lastReportTime"]
+
+        except:
+            self.token = ""
+            _LOGGER.error("Could not retrieve current numbers.")
+            self.result = "Could not retrieve current numbers."
+
