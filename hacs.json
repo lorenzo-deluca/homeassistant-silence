@@ -1,4 +1,6 @@
 {
-    "name": "Silence Scooter Integration",
-    "render_readme": true
+	"name": "Silence Scooter Integration",
+	"hacs": "1.6.0",
+	"domains": ["binary_sensor", "sensor", "switch"],
+	"iot_class": "Cloud Polling"
 }
