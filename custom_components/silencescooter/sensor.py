@@ -1,3 +1,4 @@
+"""Integration for Silence Scooters by Lorenzo De Luca (me@lorenzodeluca.dev)"""
 from datetime import datetime, timedelta
 import logging
 import operator
@@ -10,6 +11,7 @@ import urllib.parse
 import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.const import CONF_MONITORED_VARIABLES
 from homeassistant.const import (CONF_NAME, STATE_UNKNOWN)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.exceptions import PlatformNotReady
@@ -18,15 +20,13 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '0.8.1'
-
 _LOGGER = logging.getLogger(__name__)
 
 CONF_USERNAME = 'username'
 CONF_PASSWORD = 'password'
 CONF_API_KEY = 'apikey' 
 
-DEFAULT_NAME = 'SilenceScooter'
+DEFAULT_NAME = 'silencescooter'
 DEFAULT_DATE_FORMAT = "%y-%m-%dT%H:%M:%S"
 
 ATTR_NAME = 'name'
@@ -35,8 +35,7 @@ ATTR_ICON = 'icon'
 ATTR_MEASUREMENT_DATE = 'date'
 ATTR_UNIT_OF_MEASUREMENT = 'unit_of_measurement'
 
-
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=120)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
@@ -44,6 +43,133 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_PASSWORD, default=CONF_PASSWORD): cv.string,
     vol.Optional(CONF_API_KEY, default='AIzaSyAVnxe4u3oKETFWGiWcSb-43IsBunDDSVI'): cv.string,
 })
+
+SENSOR_TYPES = {
+     "model": [
+        "model",
+        "",
+        "",
+        "",
+    ],
+     "revision": [
+        "revision",
+        "",
+        "",
+        "",
+    ],
+    "manufactureDate": [
+        "manufactureDate",
+        "",
+        "",
+        "",
+    ],
+    "imei": [
+        "imei",
+        "",
+        "",
+        "",
+    ],
+    "frameNo": [
+        "frameNo",
+        "",
+        "",
+        "",
+    ],
+    "color": [
+        "color",
+        "",
+        "",
+        "",
+    ],
+    "name": [
+        "name",
+        "",
+        "",
+        "",
+    ],
+    "batteryOut": [
+        "batteryOut",
+        "",
+        "",
+        "",
+    ],
+    "alarmActivated": [
+        "alarmActivated",
+        "",
+        "",
+        "",
+    ],
+    "charging": [
+        "charging",
+        "",
+        "",
+        "",
+    ],
+    "batterySoc": [
+        "batterySoc",
+        "%",
+        "battery",
+        "mdi:car-battery",
+    ],
+    "batteryTemperature": [
+        "batteryTemperature",
+        "°C",
+        "temperature",
+        "mdi:thermometer",
+    ],
+    "motorTemperature": [
+        "motorTemperature",
+        "°C",
+        "temperature",
+        "mdi:thermometer",
+    ],
+    "inverterTemperature": [
+        "inverterTemperature",
+        "°C",
+        "temperature",
+        "mdi:thermometer",
+    ],
+    "location_longitude": ["location_longitude", "lng", "none", "mdi:map-marker"],
+    "location_latitude": ["location_latitude", "lat", "none", "mdi:map-marker"],
+    "location_altitude": ["location_altitude", "alt", "none", "mdi:map-marker"],
+    "location_currentSpeed": [
+        "location_currentSpeed",
+        "km/h",
+        "none",
+        "mdi:speedometer",
+    ],
+    "location_time": ["location_time", "time", "none", "mdi:map-marker"],
+    "odometer": [
+        "odometer",
+        "km",
+        "none",
+        "mdi:map-marker-distance",
+    ],
+    "range": [
+        "range",
+        "km",
+        "none",
+        "mdi:map-marker-distance",
+    ],
+    "velocity": [
+        "velocity",
+        "km/h",
+        "none",
+        "mdi:speedometer",
+    ],
+    "status": [
+        "status",
+        "",
+        "none",
+        "",
+    ],
+    "lastReportTime": [
+        "lastReportTime",
+        "",
+        "none",
+        "",
+    ]
+}
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
 
@@ -57,58 +183,44 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         silence_api.update()
 
         if silence_api is None:
-            raise PlatformNotReady("silence_api None")
+            raise PlatformNotReady("silence_api not ready!")
     except:
-        raise PlatformNotReady("Error while setup platform")
+        raise PlatformNotReady("Error while setup platform!")
 
-    sensors = []
-    sensors.append(SilenceScooter(silence_api, name, username, password, "frameNo"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "color"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "name"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "model"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "status"))
+    # add sensors
+    devices = []
+    for sensor in SENSOR_TYPES:
+        sensor_config = SENSOR_TYPES[sensor]
+        devices.append(
+            SilenceSensor(
+                silence_api,
+                sensor,
+                sensor_config[0],
+                sensor_config[1],
+                sensor_config[2],
+                sensor_config[3],
+            )
+        )
+    add_entities(devices)
 
-    sensors.append(SilenceScooter(silence_api, name, username, password, "alarmActivated"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "batteryOut"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "charging"))
-
-    sensors.append(SilenceScooter(silence_api, name, username, password, "batterySoc"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "odometer"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "range"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "velocity"))
-
-    sensors.append(SilenceScooter(silence_api, name, username, password, "batteryTemperature"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "motorTemperature"))
-    sensors.append(SilenceScooter(silence_api, name, username, password, "inverterTemperature"))
-
-    sensors.append(SilenceScooter(silence_api, name, username, password, "lastReportTime"))
-
-    add_entities(sensors, True)
-
-class SilenceScooter(Entity):
-    def __init__(self, silence_api, name, username, password, measurement_type):
+class SilenceSensor(Entity):
+    def __init__(self, silence_api, name, sensor_id, unit_of_measurement, device_class, icon):
         self._json_data = silence_api
-        self._name = name
-        self._username = username
-        self._password = password
-        self._measurement_type = measurement_type
+        self._name = 'silence.' + name
+        self._fieldname = sensor_id
         self._measurement_date = None
-        self._unit_of_measurement = None
         self._state = None
-        self._icon = None
+        self._unit_of_measurement = unit_of_measurement
+        self._icon = icon
+        self._device_class = device_class
 
     @property
     def name(self):
-        """Return the name of the sensor."""
         return self._name
 
     @property
-    def username(self):
-        return self._username
-
-    @property
-    def password(self):
-        return self._password
+    def device_class(self):
+        return self._device_class
 
     @property
     def icon(self):
@@ -116,11 +228,7 @@ class SilenceScooter(Entity):
 
     @property
     def state(self):
-        return self._state   
-
-    @property
-    def measurement_type(self):
-        return self._measurement_type
+        return self._state
 
     @property
     def measurement_date(self):
@@ -141,34 +249,13 @@ class SilenceScooter(Entity):
     def update(self):
         """Get the latest data from the Silence API."""
         self._json_data.update()
-
         data = self._json_data.result
 
-        if self._username == CONF_USERNAME or self._username is None:
-            _LOGGER.error("Need a username!")
-        elif self._password == CONF_PASSWORD or self._password is None:
-            _LOGGER.error("Need a password!")
-
-        if data is None or self._measurement_type not in data:
+        if data is None or self._fieldname not in data:
             self._state = STATE_UNKNOWN
         else:
-            self._state = data[self._measurement_type]
+            self._state = data[self._fieldname]
             self._measurement_date = data["lastReportTime"]
-
-        self._name = 'silence.' + self._measurement_type
-
-        if(self._measurement_type == "batterySoc"):
-            self._icon = 'mdi:battery-charging' if data["charging"] == True else 'mdi:battery'
-            self._unit_of_measurement = "%"
-        elif(self._measurement_type == "batteryTemperature"):
-            self._icon = 'mdi:temperature-celsius'
-            self._unit_of_measurement = "°C"
-        elif(self._measurement_type == "odometer" or self._measurement_type == "range"):
-            self._icon = 'mdi:fire'
-            self._unit_of_measurement = "km"
-        elif(self._measurement_type == "velocity"):
-            self._icon = 'mdi:car-speed-limiter'
-            self._unit_of_measurement = "km/h"
 
 class SilenceApiData:
     def __init__(self, username, password, apikey):
@@ -179,46 +266,6 @@ class SilenceApiData:
                 "returnSecureToken": True,
                 "password": password
             })
-
-    def get_token(self):
-        
-        try:
-            url = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyAVnxe4u3oKETFWGiWcSb-43IsBunDDSVI"
-
-            headers = {
-                'host': 'www.googleapis.com',
-                'content-type': 'application/json',
-                'accept': '*/*',
-                'x-ios-bundle-identifier': 'eco.silence.my',
-                'connection': 'keep-alive',
-                'x-client-version': 'iOS/FirebaseSDK/8.8.0/FirebaseCore-iOS',
-                'user-agent': 'FirebaseAuth.iOS/8.8.0 eco.silence.my/1.2.1 iPhone/15.6.1 hw/iPhone9_3',
-                'accept-encoding': 'gzip, deflate, br'
-            }
-
-            response = requests.request("POST", url, headers=headers, data=self._tokenquery)
-            json_result = response.json()
-
-            _LOGGER.debug("get_token json_response=%s", json_result)
-
-            if "idToken" in json_result and "error" not in json_result:
-                #self.token = 'Bearer ' + format(json_result['idToken'])
-                return format(json_result['idToken'])
-            else:
-                if "error_description" in json_result:
-                    error_description = json_result["error_description"]
-                else:
-                    error_description = "unknown"
-
-                _LOGGER.error(self.result)
-                _LOGGER.error("get_token - Could not find token.")
-                self.result = f"Error on token request ({error_description})."
-                return ""
-
-        except:
-            _LOGGER.error("get_token - Could not retrieve token.")
-            self.result = "Could not retrieve token."
-            return ""
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
@@ -256,7 +303,9 @@ class SilenceApiData:
                     _LOGGER.error(self.result)
                     _LOGGER.error("get_token - Could not find token.")
                     self.result = f"Error on token request ({error_description})."
+                    self.token = ""
             except:
+                self.token = ""
                 _LOGGER.error("get_token - Could not retrieve token.")
                 self.result = "Could not retrieve token."
 
@@ -284,8 +333,10 @@ class SilenceApiData:
             self.result["name"] = json_result[0]["name"]
             self.result["model"] = json_result[0]["model"]
             self.result["status"] = json_result[0]["status"]
+            self.result["revision"] = json_result[0]["revision"]
+            self.result["manufactureDate"] = json_result[0]["manufactureDate"]
+            self.result["imei"] = json_result[0]["imei"]
 
-            # to migrate binary_sensor
             self.result["alarmActivated"] = json_result[0]["alarmActivated"]
             self.result["batteryOut"] = json_result[0]["batteryOut"]
             self.result["charging"] = json_result[0]["charging"]
@@ -298,6 +349,12 @@ class SilenceApiData:
             self.result["batteryTemperature"] = json_result[0]["batteryTemperature"]
             self.result["motorTemperature"] = json_result[0]["motorTemperature"]
             self.result["inverterTemperature"] = json_result[0]["inverterTemperature"]
+
+            self.result["location_latitude"] = json_result[0]["lastLocation"]["latitude"]
+            self.result["location_longitude"] = json_result[0]["lastLocation"]["longitude"]
+            self.result["location_altitude"] = json_result[0]["lastLocation"]["altitude"]
+            self.result["location_currentSpeed"] = json_result[0]["lastLocation"]["currentSpeed"]
+            self.result["location_time"] = json_result[0]["lastLocation"]["time"]
 
             self.result["lastReportTime"] = json_result[0]["lastReportTime"]
 
