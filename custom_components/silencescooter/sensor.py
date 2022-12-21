@@ -20,7 +20,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ SENSOR_TYPES = {
         "manufactureDate",
         "",
         "",
-        "",
+        "mdi:calendar",
     ],
     "imei": [
         "imei",
@@ -140,7 +140,7 @@ SENSOR_TYPES = {
         "none",
         "mdi:speedometer",
     ],
-    "location_time": ["location_time", "time", "none", "mdi:map-marker"],
+    "location_time": ["location_time", "time", "none", "mdi:calendar"],
     "odometer": [
         "odometer",
         "km",
@@ -169,7 +169,7 @@ SENSOR_TYPES = {
         "lastReportTime",
         "",
         "none",
-        "",
+        "mdi:calendar",
     ]
 }
 
@@ -360,8 +360,8 @@ class SilenceApiData:
 
             self.result["lastReportTime"] = json_result[0]["lastReportTime"]
 
-        except:
+        except Exception as e:
             self.token = ""
-            _LOGGER.error("Could not retrieve current numbers.")
-            self.result = "Could not retrieve current numbers."
+            _LOGGER.error("error on update api " + str(e))
+            self.result = "error on update api"
 

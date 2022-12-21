@@ -46,11 +46,12 @@ keep statistics and use them for your automations.
 After installation and configuration, if everything is working (if not, check the registry by searching 'silence'), 
 you will find several sensor entities named 'silence.xxx' 
 
-![HA Entities](https://raw.githubusercontent.com/lorenzo-deluca/homeassistant-silence/master/images/ha-entities.png)
-![HA Battery Soc](https://raw.githubusercontent.com/lorenzo-deluca/homeassistant-silence/master/images/ha-batterysoc.png)
+![HA Entities](images/ha-entities.png | width=150)
+![HA Battery Soc](images/ha-batterysoc.png)
 
 You can create various tabs like this one
-![HA Battery Soc](images/ha-scooter.png)
+
+![HA Battery Soc](images/ha-scooter.png | width=200)
 
 ## Device Tracker
 For device tracking you can use this automation to update a dummy device tracker called `silence_scooter_tracker`
