@@ -20,6 +20,8 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
+__version__ = '0.9.1'
+
 _LOGGER = logging.getLogger(__name__)
 
 CONF_USERNAME = 'username'
