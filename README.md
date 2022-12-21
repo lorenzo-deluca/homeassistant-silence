@@ -46,13 +46,11 @@ keep statistics and use them for your automations.
 After installation and configuration, if everything is working (if not, check the registry by searching 'silence'), 
 you will find several sensor entities named 'silence.xxx' 
 
-<img alt="HA Entities" src="images/ha-entities.png " width="450">
-
-![HA Battery Soc](images/ha-batterysoc.png)
+<img alt="HA Entities" src="images/ha-entities.png" width="550">
+<img alt="HA Battery Soc" src="images/ha-batterysoc.png" width="550">
 
 You can create various tabs like this one
-
-![HA Battery Soc](images/ha-scooter.png | width=200)
+<img alt="HA Scooter" src="images/ha-scooter.png" width="550">
 
 ## Device Tracker
 For device tracking you can use this automation to update a dummy device tracker called `silence_scooter_tracker`
