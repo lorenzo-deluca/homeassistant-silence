@@ -46,7 +46,7 @@ keep statistics and use them for your automations.
 After installation and configuration, if everything is working (if not, check the registry by searching 'silence'), 
 you will find several sensor entities named 'silence.xxx' 
 
-<img alt="HA Entities" src="images/ha-entities.png " width="150">
+<img alt="HA Entities" src="images/ha-entities.png " width="450">
 
 ![HA Battery Soc](images/ha-batterysoc.png)
 
