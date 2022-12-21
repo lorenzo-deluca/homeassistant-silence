@@ -46,8 +46,8 @@ keep statistics and use them for your automations.
 After installation and configuration, if everything is working (if not, check the registry by searching 'silence'), 
 you will find several sensor entities named 'silence.xxx' 
 
-<img alt="HA Entities" src="images/ha-entities.png" width="550">
-<img alt="HA Battery Soc" src="images/ha-batterysoc.png" width="550">
+<img alt="HA Entities" src="images/ha-entities.png" width="650">
+<img alt="HA Battery Soc" src="images/ha-batterysoc.png" width="650">
 
 You can create various tabs like this one
 <img alt="HA Scooter" src="images/ha-scooter.png" width="550">
