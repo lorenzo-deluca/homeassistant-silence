@@ -1,4 +1,6 @@
 {
-	"name": "silencescooter",
-	"hacs": "1.6.0"
+	"name": "Silence Scooter Integration",
+	"hacs": "1.6.0",
+	"render_readme": true,
+  	"zip_release": true
 }
