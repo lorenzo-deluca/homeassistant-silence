@@ -55,8 +55,8 @@ You can create various tabs like this one
 ![Lovelace Scooter](images/ha-scooter.png)
 
 Here is the YAML code, you need some HACS Frontend integration installed: 
-[x] `vertical-stack-in-card`
-[x] `custom:mini-graph-card`
+- [x] `vertical-stack-in-card`
+- [x] `custom:mini-graph-card`
 
 ```YAML
 type: custom:vertical-stack-in-card
@@ -146,10 +146,14 @@ mode: single
 
 ![HA Device Tracker](images/ha-tracking.png)
 
-## Work in Progress
+# Work in Progress
 Remote controls from the app, such as on/off, opening the under seat and alarm activation, are still to be managed.
 I have captured the apis but I still have to implement the services from Home Assistant.
 Any help is welcome, if you have new implementations feel free to make pull requests :blush:
+
+## Tested on Silence Scooters
+- [x] Silence S01 Connected
+- [x] Silence S01+
 
 ## License
 GNU AGPLv3 © [Lorenzo De Luca][https://lorenzodeluca.dev]
