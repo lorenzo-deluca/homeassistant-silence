@@ -20,7 +20,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '0.9.2'
+__version__ = '0.9.3'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -268,9 +268,24 @@ class SilenceApiData:
                 "returnSecureToken": True,
                 "password": password
             })
-
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
+
+        def decode_status(status):
+            if status == 0:
+                return 'IDLE'
+            elif status == 2:
+                return 'City'
+            elif status == 3:
+                return 'Eco'
+            elif status == 4:
+                  return 'Sport'
+            elif status == 5:
+                  return 'Alarm'
+            elif status == 6:
+                  return 'InCharge'
+
+            return status  
 
         if (len(self.token) == 0):
             
@@ -334,7 +349,7 @@ class SilenceApiData:
             self.result["color"] = json_result[0]["color"]
             self.result["name"] = json_result[0]["name"]
             self.result["model"] = json_result[0]["model"]
-            self.result["status"] = json_result[0]["status"]
+            self.result["status"] = decode_status(json_result[0]["status"])
             self.result["revision"] = json_result[0]["revision"]
             self.result["manufactureDate"] = json_result[0]["manufactureDate"]
             self.result["imei"] = json_result[0]["imei"]

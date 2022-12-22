@@ -133,6 +133,8 @@ trigger:
   - platform: state
     entity_id:
       - sensor.silence_location_longitude
+  - platform: homeassistant
+    event: start
 condition: []
 action:
   - service: device_tracker.see
@@ -155,5 +157,8 @@ Any help is welcome, if you have new implementations feel free to make pull requ
 - [x] Silence S01 Connected
 - [x] Silence S01+
 
-## License
+## Known issues (FAQ)
+- For now desn't work with Seat Mo [https://github.com/lorenzo-deluca/homeassistant-silence/issues/3] because Seat use different cloud provider.
+
+# License
 GNU AGPLv3 © [Lorenzo De Luca][https://lorenzodeluca.dev]
