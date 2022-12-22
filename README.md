@@ -49,8 +49,76 @@ you will find several sensor entities named 'silence.xxx'
 <img alt="HA Entities" src="images/ha-entities.png" width="650">
 <img alt="HA Battery Soc" src="images/ha-batterysoc.png" width="650">
 
+## Lovelace
 You can create various tabs like this one
-<img alt="HA Scooter" src="images/ha-scooter.png" width="550">
+
+![Lovelace Scooter](images/ha-scooter.png)
+
+Here is the YAML code, you need some HACS Frontend integration installed: 
+[x] `vertical-stack-in-card`
+[x] `custom:mini-graph-card`
+
+```YAML
+type: custom:vertical-stack-in-card
+cards:
+  - type: picture
+    image: local/dark_logo.png
+  - type: custom:bar-card
+    height: 35px
+    entities:
+      - entity: sensor.silence_batterysoc
+        name: Battery SoC
+  - type: entities
+    entities:
+      - entity: sensor.silence_status
+        name: Status
+      - entity: sensor.silence_alarmactivated
+        name: Alarm
+      - entity: sensor.silence_batteryout
+        name: Battery Out
+      - entity: sensor.silence_charging
+        name: In Charging
+      - entity: sensor.silence_odometer
+        name: Odometer
+      - entity: sensor.silence_range
+        name: Range
+      - entity: sensor.silence_velocity
+        name: Speed
+      - entity: sensor.silence_lastreporttime
+        name: Last Update
+  - type: glance
+    title: Scooter
+    entities:
+      - entity: sensor.silence_name
+        name: Name
+      - entity: sensor.silence_color
+        name: Color
+      - entity: sensor.silence_model
+        name: Model
+      - entity: sensor.silence_manufacturedate
+        name: Manufacture
+      - entity: sensor.silence_frameno
+        name: Frame
+      - entity: sensor.silence_imei
+        name: IMEI
+    show_icon: false
+  - type: horizontal-stack
+    title: Temperature
+    cards:
+      - type: custom:mini-graph-card
+        entities:
+          - entity: sensor.silence_motortemperature
+            name: Motor
+            line_color: red
+      - type: custom:mini-graph-card
+        entities:
+          - entity: sensor.silence_invertertemperature
+            name: Inverter
+      - type: custom:mini-graph-card
+        entities:
+          - entity: sensor.silence_batterytemperature
+            name: Battery
+```
 
 ## Device Tracker
 For device tracking you can use this automation to update a dummy device tracker called `silence_scooter_tracker`
