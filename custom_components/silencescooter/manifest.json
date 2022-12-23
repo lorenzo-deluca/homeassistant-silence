@@ -1,7 +1,7 @@
 {
     "domain": "silencescooter",
     "name": "Silence Scooter",
-    "version": "v0.9.3",
+    "version": "v0.9.4",
     "documentation": "https://github.com/lorenzo-deluca/homeassistant-silence/",
     "issue_tracker": "https://github.com/lorenzo-deluca/homeassistant-silence/issues",
     "dependencies": [],

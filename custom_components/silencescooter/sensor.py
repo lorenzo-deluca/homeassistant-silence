@@ -20,7 +20,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '0.9.3'
+__version__ = '0.9.4'
 
 _LOGGER = logging.getLogger(__name__)
 
