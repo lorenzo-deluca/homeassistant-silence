@@ -36,8 +36,9 @@ ATTR_UPDATE_CYCLE = 'update_cycle'
 ATTR_ICON = 'icon'
 ATTR_MEASUREMENT_DATE = 'date'
 ATTR_UNIT_OF_MEASUREMENT = 'unit_of_measurement'
+DOMAIN_DATA = f"{DEFAULT_NAME}_data"
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
@@ -62,7 +63,7 @@ SENSOR_TYPES = {
     "manufactureDate": [
         "manufactureDate",
         "",
-        "",
+        "date",
         "mdi:calendar",
     ],
     "imei": [
@@ -140,17 +141,17 @@ SENSOR_TYPES = {
         "none",
         "mdi:speedometer",
     ],
-    "location_time": ["location_time", "time", "none", "mdi:calendar"],
+    "location_time": ["location_time", "time", "date_time_utc", "mdi:calendar"],
     "odometer": [
         "odometer",
         "km",
-        "none",
+        "distance",
         "mdi:map-marker-distance",
     ],
     "range": [
         "range",
         "km",
-        "none",
+        "distance",
         "mdi:map-marker-distance",
     ],
     "velocity": [
@@ -163,14 +164,20 @@ SENSOR_TYPES = {
         "status",
         "",
         "none",
-        "",
+        "mdi:history",
     ],
     "lastReportTime": [
         "lastReportTime",
         "",
-        "none",
+        "date_time_utc",
         "mdi:calendar",
-    ]
+    ]#,
+    #"dummy_command": [
+    #    "dummy_command",
+    #    "",
+    #    "none",
+    #    "",
+    #]
 }
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
@@ -242,27 +249,43 @@ class SilenceSensor(Entity):
         
     @property
     def extra_state_attributes(self):
-        """Return the state attributes."""
         return{
             ATTR_MEASUREMENT_DATE: self._measurement_date,
             ATTR_UNIT_OF_MEASUREMENT: self._unit_of_measurement
         }
+    
+    @property
+    def unique_id(self):
+        return self._name
+
+    @property
+    def type(self):
+        return 'auto'    
+    
+    @property
+    def id(self):
+        return self._name
 
     def update(self):
-        """Get the latest data from the Silence API."""
-        self._json_data.update()
-        data = self._json_data.result
+        #if self._fieldname == 'dummy_command':
+        #    _LOGGER.error(f"update - receive command {self.state}")
+        #else:
+            """Get the latest data from the Silence API."""
+            self._json_data.update()
+            data = self._json_data.result
 
-        if data is None or self._fieldname not in data:
-            self._state = STATE_UNKNOWN
-        else:
-            self._state = data[self._fieldname]
-            self._measurement_date = data["lastReportTime"]
+            if data is None or self._fieldname not in data:
+                self._state = STATE_UNKNOWN
+            else:
+                self._state = data[self._fieldname]
+                self._measurement_date = data["lastReportTime"]
+
 
 class SilenceApiData:
     def __init__(self, username, password, apikey):
         self.result = {}
         self.token = ""
+        self._apikey = apikey
         self._tokenquery = json.dumps({
                 "email": username,
                 "returnSecureToken": True,
@@ -274,25 +297,34 @@ class SilenceApiData:
         def decode_status(status):
             if status == 0:
                 return 'IDLE'
+            elif status == 1:
+                return 'MovingNoKey!'
             elif status == 2:
                 return 'City'
             elif status == 3:
                 return 'Eco'
             elif status == 4:
-                  return 'Sport'
+                return 'Sport'
             elif status == 5:
-                  return 'Alarm'
+                return 'BatteryOut!'
             elif status == 6:
-                  return 'InCharge'
+                return 'Charge'
+            return status
 
-            return status  
+        def decode_boolean(value):
+            if value == 'True' or value == 'true':
+                return 1
+            return 0
+        
+        def is_running(status):
+            return (status == 2 or status == 3 or status == 4 or status == 5)
 
         if (len(self.token) == 0):
             
             try:
                 self.result = {}
 
-                url = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key=AIzaSyAVnxe4u3oKETFWGiWcSb-43IsBunDDSVI"
+                url = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword?key="+self._apikey
                 headers = {
                     'host': 'www.googleapis.com',
                     'content-type': 'application/json',
@@ -317,14 +349,12 @@ class SilenceApiData:
                     else:
                         error_description = "unknown"
 
-                    _LOGGER.error(self.result)
-                    _LOGGER.error("get_token - Could not find token.")
+                    _LOGGER.error(f"get_token - Could not find token <{self.result}>")
                     self.result = f"Error on token request ({error_description})."
                     self.token = ""
             except:
-                self.token = ""
                 _LOGGER.error("get_token - Could not retrieve token.")
-                self.result = "Could not retrieve token."
+                self.token = ""
 
         self.result = {}
 
@@ -349,23 +379,28 @@ class SilenceApiData:
             self.result["color"] = json_result[0]["color"]
             self.result["name"] = json_result[0]["name"]
             self.result["model"] = json_result[0]["model"]
-            self.result["status"] = decode_status(json_result[0]["status"])
             self.result["revision"] = json_result[0]["revision"]
             self.result["manufactureDate"] = json_result[0]["manufactureDate"]
             self.result["imei"] = json_result[0]["imei"]
 
-            self.result["alarmActivated"] = json_result[0]["alarmActivated"]
-            self.result["batteryOut"] = json_result[0]["batteryOut"]
-            self.result["charging"] = json_result[0]["charging"]
+            self.result["status"] = decode_status(json_result[0]["status"])
+            self.result["alarmActivated"] = decode_boolean(json_result[0]["alarmActivated"])
+            self.result["batteryOut"] = decode_boolean(json_result[0]["batteryOut"])
+            self.result["charging"] = decode_boolean(json_result[0]["charging"])
 
             self.result["batterySoc"] = json_result[0]["batterySoc"]
             self.result["odometer"] = json_result[0]["odometer"]
             self.result["range"] = json_result[0]["range"]
             self.result["velocity"] = json_result[0]["velocity"]
             
-            self.result["batteryTemperature"] = json_result[0]["batteryTemperature"]
-            self.result["motorTemperature"] = json_result[0]["motorTemperature"]
-            self.result["inverterTemperature"] = json_result[0]["inverterTemperature"]
+            if is_running(json_result[0]["status"]):
+                self.result["batteryTemperature"] = json_result[0]["batteryTemperature"]
+                self.result["motorTemperature"] = json_result[0]["motorTemperature"]
+                self.result["inverterTemperature"] = json_result[0]["inverterTemperature"]
+            else:
+                self.result["batteryTemperature"] = 0
+                self.result["motorTemperature"] = 0
+                self.result["inverterTemperature"] = 0
 
             self.result["location_latitude"] = json_result[0]["lastLocation"]["latitude"]
             self.result["location_longitude"] = json_result[0]["lastLocation"]["longitude"]
@@ -376,7 +411,6 @@ class SilenceApiData:
             self.result["lastReportTime"] = json_result[0]["lastReportTime"]
 
         except Exception as e:
+            _LOGGER.error(f"error on update api {str(e)}")
             self.token = ""
-            _LOGGER.error("error on update api " + str(e))
-            self.result = "error on update api"
 
