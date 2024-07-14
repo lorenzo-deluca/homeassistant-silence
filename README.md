@@ -17,6 +17,14 @@ If you like this project you can support me with :coffee: or simply put a :star:
 This plugin was developed by analyzing traffic from official Silence Connected App, it was not sponsored or officially supported by Silence.eco
 If someone from Silence would like to contribute or collaborate please contact me at [me@lorenzodeluca.dev](mailto:me@lorenzodeluca.dev?subject=[GitHub]homeassistance-Silence)
 
+# 🚨 UPDATE JULY 2024
+> **NEW PROJECT (Open Source Private Server):** 
+With the help of other users and since the applications are becoming pay-as-you-go, we have created an alternative project whereby you can create your own private server, becoming completely autonomous and not sending any data to Silence/Seat.
+This project should also work with Seat Mò scooters.
+[Private Server](https://github.com/lorenzo-deluca/silence-private-server)
+
+---
+
 ## Installation
 You can install this plugin like any other hacs integration on home assistant.
 
