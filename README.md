@@ -2,13 +2,15 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 ![Version](https://img.shields.io/github/v/release/lorenzo-deluca/homeassistant-silence)
 ![Downloads](https://img.shields.io/github/downloads/lorenzo-deluca/homeassistant-silence/total)
+[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/lorenzo-deluca)
 [![buy me a coffee](https://img.shields.io/badge/support-buymeacoffee-222222.svg?style=flat-square)](https://www.buymeacoffee.com/lorenzodeluca)
 
 > Silence.eco Scooter data for [Home Assistant][https://www.home-assistant.io]
 
 This is a Home Assistant custom component that integrate data from you Silence Scooter to Home Assistant.
-If you like this project you can support me with :coffee: or simply put a :star: to this repository :blush:
+If you like this project you can support me with :coffee: , with **GitHub Sponsor** or simply put a :star: to this repository :blush:
 
+[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/lorenzo-deluca)
 <a href="https://www.buymeacoffee.com/lorenzodeluca" target="_blank">
   <img src="https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png" alt="Buy Me A Coffee" width="150px">
 </a>
