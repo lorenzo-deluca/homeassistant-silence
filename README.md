@@ -1,4 +1,5 @@
 # Home Assistant Integration for Silence Scooter
+
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 ![Version](https://img.shields.io/github/v/release/lorenzo-deluca/homeassistant-silence)
 ![Downloads](https://img.shields.io/github/downloads/lorenzo-deluca/homeassistant-silence/total)
@@ -16,11 +17,13 @@ If you like this project you can support me with :coffee: , with **GitHub Sponso
 </a>
 
 # Disclaimer
+
 This plugin was developed by analyzing traffic from official Silence Connected App, it was not sponsored or officially supported by Silence.eco
 If someone from Silence would like to contribute or collaborate please contact me at [me@lorenzodeluca.dev](mailto:me@lorenzodeluca.dev?subject=[GitHub]homeassistance-Silence)
 
 # 🚨 UPDATE JULY 2024
-> **NEW PROJECT (Open Source Private Server):** 
+>
+> **NEW PROJECT (Open Source Private Server):**
 With the help of other users and since the applications are becoming pay-as-you-go, we have created an alternative project whereby you can create your own private server, becoming completely autonomous and not sending any data to Silence/Seat.
 This project should also work with Seat Mò scooters.
 [Private Server](https://github.com/lorenzo-deluca/silence-private-server)
@@ -28,16 +31,20 @@ This project should also work with Seat Mò scooters.
 ---
 
 ## Installation
+
 You can install this plugin like any other hacs integration on home assistant.
 
 ### HACS
-- Add repository "https://github.com/lorenzo-deluca/homeassistant-silence" to custom repositories and select "Integration" category.
+
+- Add repository "<https://github.com/lorenzo-deluca/homeassistant-silence>" to custom repositories and select "Integration" category.
 - Click on "Install" in the plugin card.
 
 ### Manual
+
 Copy or link [`silencescooter`](./custom_components/silencescooter) subfolder to `config/custom_components`.
 
 ## Configuration
+
 Configure you Scooter with Silence APP, edit `configuration.yaml` file adding this sensor with your app credentials.
 
 ```YAML
@@ -49,22 +56,26 @@ sensor:
 ```
 
 # Home Assistant
-After installing and configuring the plugin you will be able to view on home assistant all the data of your scooter silence, 
+
+After installing and configuring the plugin you will be able to view on home assistant all the data of your scooter silence,
 keep statistics and use them for your automations.
 
 ## Entities
-After installation and configuration, if everything is working (if not, check the registry by searching 'silence'), 
-you will find several sensor entities named 'silence.xxx' 
+
+After installation and configuration, if everything is working (if not, check the registry by searching 'silence'),
+you will find several sensor entities named 'silence.xxx'
 
 <img alt="HA Entities" src="images/ha-entities.png" width="650">
 <img alt="HA Battery Soc" src="images/ha-batterysoc.png" width="650">
 
 ## Lovelace
+
 You can create various tabs like this one
 
 ![Lovelace Scooter](images/ha-scooter.png)
 
-Here is the YAML code, you need some HACS Frontend integration installed: 
+Here is the YAML code, you need some HACS Frontend integration installed:
+
 - [x] `vertical-stack-in-card`
 - [x] `custom:mini-graph-card`
 
@@ -131,44 +142,36 @@ cards:
 ```
 
 ## Device Tracker
-For device tracking you can use this automation to update a dummy device tracker called `silence_scooter_tracker`
+
+For device tracking you can add a template device tracker called `silence_scooter_tracker` in your `configuration.yaml`. This replaces the old `device_tracker.see` action, deprecated in Home Assistant and removed starting from Core 2027.5.
 
 ```YAML
-alias: Auto - Silence Scooter Update Location
-description: ""
-trigger:
-  - platform: state
-    entity_id:
-      - sensor.silence_location_latitude
-  - platform: state
-    entity_id:
-      - sensor.silence_location_longitude
-  - platform: homeassistant
-    event: start
-condition: []
-action:
-  - service: device_tracker.see
-    data:
-      dev_id: silence_scooter_tracker
-      gps:
-        - "{{ states('sensor.silence_location_latitude') }}"
-        - "{{ states('sensor.silence_location_longitude') }}"
-mode: single
+template:
+  - device_tracker:
+      - name: silence_scooter_tracker
+        latitude: "{{ states('sensor.silence_location_latitude') }}"
+        longitude: "{{ states('sensor.silence_location_longitude') }}"
 ```
+
+No automation is required: the tracker updates automatically whenever the source sensors change.
 
 ![HA Device Tracker](images/ha-tracking.png)
 
 # Work in Progress
+
 Remote controls from the app, such as on/off, opening the under seat and alarm activation, are still to be managed.
 I have captured the apis but I still have to implement the services from Home Assistant.
 Any help is welcome, if you have new implementations feel free to make pull requests :blush:
 
 ## Tested on Silence Scooters
+
 - [x] Silence S01 Connected
 - [x] Silence S01+
 
 ## Known issues (FAQ)
+
 - For now desn't work with Seat Mo [https://github.com/lorenzo-deluca/homeassistant-silence/issues/3] because Seat use different cloud provider.
 
 # License
+
 GNU AGPLv3 © [Lorenzo De Luca][https://lorenzodeluca.dev]
