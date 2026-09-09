@@ -41,6 +41,18 @@ SENSOR_TYPES = {
         "",
         "",
     ],
+    "batteryId": [
+        "batteryId",
+        "",
+        "",
+        "",
+    ],
+    "batteryId2": [
+        "batteryId2",
+        "",
+        "",
+        "",
+    ],
     "color": [
         "color",
         "",
@@ -77,8 +89,20 @@ SENSOR_TYPES = {
         "battery",
         "mdi:car-battery",
     ],
+    "batterySoc2": [
+        "batterySoc2",
+        "%",
+        "battery",
+        "mdi:car-battery",
+    ],
     "batteryTemperature": [
         "batteryTemperature",
+        "°C",
+        "temperature",
+        "mdi:thermometer",
+    ],
+    "batteryTemperature2": [
+        "batteryTemperature2",
         "°C",
         "temperature",
         "mdi:thermometer",
@@ -89,8 +113,20 @@ SENSOR_TYPES = {
         "temperature",
         "mdi:thermometer",
     ],
+    "motorTemperature2": [
+        "motorTemperature2",
+        "°C",
+        "temperature",
+        "mdi:thermometer",
+    ],
     "inverterTemperature": [
         "inverterTemperature",
+        "°C",
+        "temperature",
+        "mdi:thermometer",
+    ],
+    "inverterTemperature2": [
+        "inverterTemperature2",
         "°C",
         "temperature",
         "mdi:thermometer",
