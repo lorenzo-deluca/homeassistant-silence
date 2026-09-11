@@ -120,24 +120,39 @@ class SilenceApiData:
             self.result["charging"] = decode_boolean(json_result[0]["charging"])
 
             self.result["batteryId"] = json_result[0]["batteryId"]
-            self.result["batteryId2"] = json_result[0]["batteryId2"]
             self.result["batterySoc"] = json_result[0]["batterySoc"]
-            self.result["batterySoc2"] = json_result[0]["batterySoc2"]
             self.result["odometer"] = json_result[0]["odometer"]
             self.result["range"] = json_result[0]["range"]
             self.result["velocity"] = json_result[0]["velocity"]
 
-#            if is_running(json_result[0]["status"]):
-            self.result["batteryTemperature"] = json_result[0]["batteryTemperature"]
-            self.result["batteryTemperature2"] = json_result[0]["batteryTemperature2"]
-            self.result["motorTemperature"] = json_result[0]["motorTemperature"]
-            self.result["motorTemperature2"] = json_result[0]["motorTemperature2"]
-            self.result["inverterTemperature"] = json_result[0]["inverterTemperature"]
-            self.result["inverterTemperature2"] = json_result[0]["inverterTemperature2"]
-#            else:
-#                self.result["batteryTemperature"] = 0
-#                self.result["motorTemperature"] = 0
-#                self.result["inverterTemperature"] = 0
+            # second battery fields (optionals)
+            try:
+                scooter = json_result[0]
+                battery_id_2 = scooter.get("batteryId2")
+    
+                second_battery_fields = (
+                    "batterySoc2",
+                    "batteryTemperature2",
+                    "motorTemperature2",
+                    "inverterTemperature2",
+                )    
+                if battery_id_2 not in (None, ""):
+                    for field in second_battery_fields:
+                        self.result[field] = scooter.get(field)
+                else:
+                    for field in second_battery_fields:
+                        self.result[field] = None
+            except Exception as ex:
+                _LOGGER.error(f"error on second battery {str(ex)}")
+
+            if is_running(json_result[0]["status"]):
+                self.result["batteryTemperature"] = json_result[0]["batteryTemperature"]
+                self.result["motorTemperature"] = json_result[0]["motorTemperature"]
+                self.result["inverterTemperature"] = json_result[0]["inverterTemperature"]
+            else:
+                self.result["batteryTemperature"] = 0
+                self.result["motorTemperature"] = 0
+                self.result["inverterTemperature"] = 0
 
             self.result["location_latitude"] = json_result[0]["lastLocation"]["latitude"]
             self.result["location_longitude"] = json_result[0]["lastLocation"]["longitude"]
